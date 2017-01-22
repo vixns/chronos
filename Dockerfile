@@ -1,16 +1,31 @@
-FROM java:8-jre
-ARG http_proxy
-ENV http_proxy ${http_proxy}
+FROM java:8-jdk
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
+ADD . /src
+
+RUN cd /src \
+    && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
+    && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y apt-transport-https \
     && echo "deb http://repos.mesosphere.com/debian jessie-unstable main" | tee /etc/apt/sources.list.d/mesosphere.list \
     && echo "deb http://repos.mesosphere.com/debian jessie-testing main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
     && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
+    && echo 'deb https://deb.nodesource.com/node_7.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list \
     && apt-get update \
-    && apt-get install --no-install-recommends -y --force-yes mesos=1.0.1-2.0.93.debian81 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && apt-get install --no-install-recommends -y --force-yes \
+    mesos=1.1\* \
+    maven \
+    nodejs \
+    scala \
+    libcurl3-nss \
+    && ln -sf /usr/bin/nodejs /usr/bin/node \
+    && mvn -Dmaven.test.skip=true clean package \
+    && mkdir -p /chronos \
+    && mv target/chronos*jar /chronos/chronos.jar \
+    && mv bin/start.sh /entrypoint.sh \
+    && cd / \
+    && dpkg --purge maven nodejs scala \
+    && apt-get clean autoremove \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.m2 /src
 
-ADD ./tmp/chronos.jar /chronos/chronos.jar
-ADD bin/start.sh /chronos/bin/start.sh
-ENTRYPOINT ["/chronos/bin/start.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
