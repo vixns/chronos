@@ -13,7 +13,7 @@ RUN cd /src \
     && echo 'deb https://deb.nodesource.com/node_7.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list \
     && apt-get update \
     && apt-get install --no-install-recommends -y --force-yes \
-    mesos=1.2.0\* \
+    mesos \
     maven \
     nodejs \
     scala \
@@ -27,5 +27,7 @@ RUN cd /src \
     && dpkg --purge maven nodejs scala \
     && apt-get clean autoremove \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.m2 /src
+
+ENV PORT1=8080
 
 ENTRYPOINT ["/entrypoint.sh"]
