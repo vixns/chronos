@@ -324,7 +324,11 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
   @Timed
   def getSummary(): Response = {
     try {
-      val jobs = jobGraph.transformVertextSet(j => jobGraph.getJobForName(j))
+      import scala.collection.JavaConversions._
+      val jobs = jobGraph.dag.vertexSet()
+        .flatMap {
+          jobGraph.getJobForName
+        }
         .map {
           job =>
             val state = Exporter.getLastState(job).toString
@@ -364,7 +368,12 @@ class JobManagementResource @Inject()(val jobScheduler: JobScheduler,
              @QueryParam("offset") offset: Integer
             ) = {
     try {
-      val jobs = jobGraph.transformVertextSet(j => jobGraph.getJobForName(j))
+      val jobs = ListBuffer[BaseJob]()
+      import scala.collection.JavaConversions._
+      jobGraph.dag.vertexSet().map({
+        job =>
+          jobs += jobGraph.getJobForName(job).get
+      })
 
       val _limit: Integer = limit match {
         case x: Integer =>
