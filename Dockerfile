@@ -17,7 +17,7 @@ RUN cd /src \
     && mvn -Dmaven.repo.local=/src/.m2 -Dmaven.test.skip=true clean package
 
 FROM openjdk:8-jre-slim
-ENV PORT1=8081
+ENV PORT0=8080 PORT1=8081
 RUN \
 	apt-get update \
 	&& apt-get install -y gnupg \
