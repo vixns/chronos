@@ -16,8 +16,17 @@ RUN cd /src \
     && ln -sf /usr/bin/nodejs /usr/bin/node \
     && mvn -Dmaven.repo.local=/src/.m2 -Dmaven.test.skip=true clean package
 
-FROM openjdk:8-jre-alpine
-ENV PORT1=8080
+FROM openjdk:8-jre-slim
+ENV PORT1=8081
+RUN \
+	apt-get update \
+	&& apt-get install -y gnupg \
+    && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
+    && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
+	&& apt-get update \
+	&& apt-get install --no-install-recommends -y systemd mesos \
+	&& dpkg --purge systemd gnupg \
+	&& rm -rf /var/lib/apt/lists/*
 COPY --from=0 /src/target/chronos.jar /chronos.jar
 ADD bin/start.sh /start.sh
 ENTRYPOINT ["/start.sh"]
