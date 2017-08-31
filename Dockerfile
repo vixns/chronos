@@ -1,16 +1,23 @@
-FROM java:8-jre
-ARG http_proxy
-ENV http_proxy ${http_proxy}
+FROM openjdk:8-jdk
 
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
-    && echo "deb http://repos.mesosphere.com/debian jessie-unstable main" | tee /etc/apt/sources.list.d/mesosphere.list \
-    && echo "deb http://repos.mesosphere.com/debian jessie-testing main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
-    && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
+ADD . /src
+ENV MAVEN_CONFIG=/src/.m2
+RUN cd /src \
+    && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
     && apt-get update \
-    && apt-get install --no-install-recommends -y --force-yes mesos=1.0.1-2.0.93.debian81 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    && apt-get install --no-install-recommends -y apt-transport-https \
+    && echo 'deb https://deb.nodesource.com/node_7.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+    maven \
+    nodejs \
+    scala \
+    libcurl3-nss \
+    && ln -sf /usr/bin/nodejs /usr/bin/node \
+    && mvn -Dmaven.repo.local=/src/.m2 -Dmaven.test.skip=true clean package
 
-ADD ./tmp/chronos.jar /chronos/chronos.jar
-ADD bin/start.sh /chronos/bin/start.sh
-ENTRYPOINT ["/chronos/bin/start.sh"]
+FROM openjdk:8-jre-alpine
+ENV PORT1=8080
+COPY --from=0 /src/target/chronos.jar /chronos.jar
+ADD bin/start.sh /start.sh
+ENTRYPOINT ["/start.sh"]
