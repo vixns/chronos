@@ -24,9 +24,10 @@ RUN \
     && apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv E56151BF \
     && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
 	&& apt-get update \
-	&& apt-get install --no-install-recommends -y systemd mesos \
-	&& dpkg --purge systemd gnupg \
-	&& rm -rf /var/lib/apt/lists/*
+	&& apt-get install --no-install-recommends -y systemd curl iproute2 mesos \
+	&& curl -s -o /tmp/libssl.dev http://security.debian.org/debian-security/pool/updates/main/o/openssl/libssl1.0.0_1.0.1t-1+deb8u6_amd64.deb \
+	&& dpkg -i /tmp/libssl.dev \
+	&& rm -rf /var/lib/apt/lists/* /tmp/*
 COPY --from=0 /src/target/chronos.jar /chronos.jar
 ADD bin/start.sh /start.sh
 ENTRYPOINT ["/start.sh"]
