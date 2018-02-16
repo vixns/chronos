@@ -7,12 +7,11 @@ RUN cd /src \
     && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
     && apt-get update \
     && apt-get install --no-install-recommends -y apt-transport-https \
-    && echo "deb http://repos.mesosphere.com/debian jessie-unstable main" | tee /etc/apt/sources.list.d/mesosphere.list \
-    && echo "deb http://repos.mesosphere.com/debian jessie-testing main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
-    && echo "deb http://repos.mesosphere.com/debian jessie main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
-    && echo 'deb https://deb.nodesource.com/node_7.x jessie main' | tee /etc/apt/sources.list.d/nodesource.list \
+    && echo "deb http://repos.mesosphere.com/debian stretch main" | tee -a /etc/apt/sources.list.d/mesosphere.list \
+    && echo 'deb https://deb.nodesource.com/node_7.x stretch main' | tee /etc/apt/sources.list.d/nodesource.list \
     && apt-get update \
     && apt-get install --no-install-recommends -y --force-yes \
+    systemd \
     mesos \
     maven \
     nodejs \
